@@ -15,13 +15,26 @@ app.post("/v1/chat/completions", async (req, res) => {
       body: JSON.stringify(req.body)
     });
 
-    const data = await apiRes.json();
-    res.status(apiRes.status).json(data);
+    const text = await apiRes.text();
+
+    try {
+      const data = JSON.parse(text);
+      if (!apiRes.ok) {
+        return res.status(apiRes.status).json({
+          error: data.error || "Unknown error from OpenAI"
+        });
+      }
+      res.status(apiRes.status).json(data);
+    } catch {
+      // если OpenAI вернул не JSON
+      res.status(apiRes.status).send(text);
+    }
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Proxy error");
+    console.error("Proxy error:", err);
+    res.status(500).json({ error: "Proxy error", details: err.message });
   }
 });
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Server running on port ${port}`));
+

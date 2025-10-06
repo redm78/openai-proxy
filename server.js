@@ -4,7 +4,7 @@ import fetch from "node-fetch";
 const app = express();
 app.use(express.json());
 
-app.post("/proxy", async (req, res) => {
+app.post("/v1/chat/completions", async (req, res) => {
   try {
     const apiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -14,8 +14,9 @@ app.post("/proxy", async (req, res) => {
       },
       body: JSON.stringify(req.body)
     });
+
     const data = await apiRes.json();
-    res.json(data);
+    res.status(apiRes.status).json(data);
   } catch (err) {
     console.error(err);
     res.status(500).send("Proxy error");
